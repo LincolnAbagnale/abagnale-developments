@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Abagnale Developments</title>
+  <meta name="description" content="Aplicativos e ferramentas desenvolvidos por Lincoln Abagnale.">
+  <link rel="canonical" href="https://abagnaledevelopments.com.br/">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="Abagnale Developments">
+  <meta property="og:description" content="Aplicativos e ferramentas desenvolvidos por Lincoln Abagnale.">
+  <meta property="og:url" content="https://abagnaledevelopments.com.br/">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbfbfd; --text: #1d1d1f; --muted: #6e6e73; --tile: #fff;
+      --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.09);
+      --shadow-hover: 0 2px 4px rgba(0,0,0,.06), 0 22px 48px rgba(0,0,0,.16);
+      --ring: #0071e3;
+      --ease: cubic-bezier(.2, .8, .2, 1);
+      --w: clamp(140px, 42vw, 184px);   /* largura de cada produto */
+      --gap: clamp(20px, 4vw, 48px);    /* espaço entre produtos */
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000; --text: #f5f5f7; --muted: #86868b; --tile: #1c1c1e;
+        --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.55);
+        --shadow-hover: 0 2px 4px rgba(0,0,0,.5), 0 22px 48px rgba(0,0,0,.7);
+        --ring: #2997ff;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      min-height: 100vh; min-height: 100svh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    }
+    header { padding: clamp(56px, 11vh, 120px) 0 clamp(48px, 9vh, 96px); text-align: center; }
+    h1 { font-size: clamp(34px, 6.2vw, 64px); font-weight: 600; letter-spacing: -.028em; line-height: 1.05; }
+
+    main { flex: 1; width: 100%; display: flex; justify-content: center; align-items: flex-start; }
+    .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(36px, 6vw, 64px) var(--gap); max-width: 1240px; }
+
+    .item {
+      width: var(--w); display: flex; flex-direction: column; align-items: center; text-align: center;
+      color: inherit; text-decoration: none; border-radius: 28px;
+      transition: transform .45s var(--ease);
+      -webkit-tap-highlight-color: transparent;
+      opacity: 0; animation: rise .8s var(--ease) forwards; animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+    }
+    .tile {
+      width: var(--w); height: var(--w); border-radius: 23%; overflow: hidden; background: var(--tile);
+      box-shadow: var(--shadow); transition: box-shadow .45s var(--ease);
+    }
+    .tile img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .name { margin-top: 20px; font-size: 17px; font-weight: 600; letter-spacing: -.012em; line-height: 1.25; }
+    .desc { margin-top: 6px; font-size: 14px; line-height: 1.45; color: var(--muted); letter-spacing: -.006em; text-wrap: balance; }
+
+    @media (hover: hover) {
+      .item:hover { transform: scale(1.05); }
+      .item:hover .tile { box-shadow: var(--shadow-hover); }
+    }
+    .item:active { transform: scale(.98); transition-duration: .15s; }
+    .item:focus-visible { outline: 3px solid var(--ring); outline-offset: 8px; }
+
+    footer { padding: 72px 0 calc(40px + env(safe-area-inset-bottom)); font-size: 13px; color: var(--muted); text-align: center; letter-spacing: -.003em; }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .item { animation: none; opacity: 1; transition: none; }
+      .tile { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Abagnale Developments</h1>
+  </header>
+
+  <main>
+    <!-- Para adicionar um projeto, copie um bloco <a class="item"> e troque imagem, nome, descrição e link. -->
+    <div class="grid">
+      <a class="item" style="--i:0" href="https://whiteprint-a81.pages.dev/" aria-label="WhitePrint: caderno quadriculado online">
+        <span class="tile"><img src="/img/whiteprint.webp" width="400" height="400" alt="" decoding="async"></span>
+        <span class="name">WhitePrint</span>
+        <span class="desc">Caderno quadriculado online. Anote, faça contas e organize tudo em uma folha no navegador.</span>
+      </a>
+
+      <a class="item" style="--i:1" href="https://leitura-livro-de-mormon.pages.dev/" aria-label="Leitura do Livro de Mórmon: abrir o aplicativo">
+        <span class="tile"><img src="/img/leitura.webp" width="400" height="400" alt="" decoding="async"></span>
+        <span class="name">Leitura do Livro de Mórmon</span>
+        <span class="desc">Acompanhe sua leitura, capítulo por capítulo. Grátis.</span>
+      </a>
+    </div>
+  </main>
+
+  <footer>Desenvolvido por Lincoln Abagnale</footer>
+</body>
+</html>
