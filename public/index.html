@@ -14,11 +14,16 @@
   <meta property="og:url" content="https://abagnaledevelopments.com.br/">
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preload" href="/fonts/montserrat-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("intro");setTimeout(function(){document.documentElement.classList.remove("intro")},9000)}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    @font-face { font-family: "Montserrat"; font-weight: 500; font-style: normal; font-display: swap; src: url("/fonts/montserrat-latin-500-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Montserrat"; font-weight: 600; font-style: normal; font-display: swap; src: url("/fonts/montserrat-latin-600-normal.woff2") format("woff2"); }
     :root {
+      --display: "Montserrat", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
       --bg: #fff; --text: #1d1d1f; --muted: #6e6e73; --tile: #fff;
       --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.09);
       --shadow-hover: 0 2px 4px rgba(0,0,0,.06), 0 22px 48px rgba(0,0,0,.16);
@@ -38,7 +43,13 @@
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     }
     header { padding: clamp(88px, 11vh, 120px) 0 clamp(48px, 9vh, 96px); text-align: center; }
-    h1 { font-size: clamp(34px, 6.2vw, 64px); font-weight: 600; letter-spacing: -.028em; line-height: 1.05; }
+    h1 {
+      font-family: var(--display); font-weight: 600; text-transform: uppercase;
+      font-size: clamp(21px, 3.7vw, 46px); letter-spacing: .14em; padding-left: .14em; line-height: 1.2; text-wrap: balance;
+    }
+    h1 .w { display: inline-block; white-space: nowrap; }
+    h1 .w + .w { margin-left: .42em; }
+    h1 .c { display: inline-block; }
 
     .brand { position: absolute; top: max(20px, env(safe-area-inset-top)); left: max(20px, env(safe-area-inset-left)); display: block; line-height: 0; border-radius: 10px; transition: transform .4s var(--ease), opacity .3s; }
     .brand img { height: clamp(34px, 4.4vw, 48px); width: auto; display: block; }
@@ -55,7 +66,7 @@
       color: inherit; text-decoration: none; border-radius: 28px;
       transition: transform .45s var(--ease);
       -webkit-tap-highlight-color: transparent;
-      animation: rise .8s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+      
     }
     .tile {
       width: var(--w); height: var(--w); border-radius: 23%; overflow: hidden; background: var(--tile);
@@ -72,11 +83,17 @@
     .item:active { transform: scale(.98); transition-duration: .15s; }
     .item:focus-visible { outline: 3px solid var(--ring); outline-offset: 8px; }
 
-    footer { padding: 72px 0 calc(40px + env(safe-area-inset-bottom)); font-size: 13px; color: var(--muted); text-align: center; letter-spacing: -.003em; }
+    footer { padding: 72px 0 calc(40px + env(safe-area-inset-bottom)); text-align: center; }
+    .slogan { font-family: var(--display); font-weight: 500; font-size: clamp(14px, 1.5vw, 17px); letter-spacing: .01em; color: var(--text); }
+    .credit { margin-top: 14px; font-size: 12.5px; color: var(--muted); letter-spacing: -.003em; }
 
+    html:not(.intro) .item { animation: rise .8s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
+    html:not(.intro) .slogan, html:not(.intro) .credit { animation: rise .9s var(--ease) backwards; animation-delay: .45s; }
+    html.intro { overflow: hidden; }
+    .intro .item, .intro .slogan, .intro .credit, .intro h1, .intro .brand { opacity: 0; }
     @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
     @media (prefers-reduced-motion: reduce) {
-      .item { animation: none; transition: none; }
+      .item, .slogan, .credit { animation: none !important; transition: none; }
       .tile { transition: none; }
     }
   </style>
@@ -117,6 +134,65 @@
     </div>
   </main>
 
-  <footer>Desenvolvido por Lincoln Abagnale</footer>
+  <footer>
+    <p class="slogan">Soluções inteligentes, criadas para você.</p>
+    <p class="credit">Desenvolvido por Lincoln Abagnale</p>
+  </footer>
+
+  <script>
+  /* Abertura: logo no centro, nome aparece, e os dois sobem para o lugar final. */
+  (function () {
+    var root = document.documentElement;
+    if (!root.classList.contains("intro")) return;
+    var logo = document.querySelector(".brand"), title = document.querySelector("h1");
+    var EASE = "cubic-bezier(.2,.8,.2,1)", MOVE = "cubic-bezier(.7,0,.2,1)";
+    function finish() { root.classList.remove("intro"); }
+    function run() {
+      try {
+        var vw = innerWidth, vh = innerHeight;
+        // letras separadas (palavras inteiras não quebram no meio)
+        var text = title.textContent.trim(); title.setAttribute("aria-label", text); title.textContent = "";
+        var letters = [];
+        text.split(" ").forEach(function (word) {
+          var w = document.createElement("span"); w.className = "w"; w.setAttribute("aria-hidden", "true");
+          word.split("").forEach(function (ch) { var c = document.createElement("span"); c.className = "c"; c.textContent = ch; w.appendChild(c); letters.push(c); });
+          title.appendChild(w);
+        });
+        var lr = logo.getBoundingClientRect(), tr = title.getBoundingClientRect();
+        var lh = Math.min(120, vw * 0.28), scale = lh / lr.height;
+        var gap = 36, block = lh + gap + tr.height, top = (vh - block) / 2;
+        var lx = vw / 2 - (lr.left + lr.width / 2), ly = top + lh / 2 - (lr.top + lr.height / 2);
+        var ty = top + lh + gap + tr.height / 2 - (tr.top + tr.height / 2);
+        var logoT = "translate(" + lx + "px," + ly + "px) scale(" + scale + ")", titleT = "translate(0," + ty + "px)";
+        logo.style.transform = logoT; logo.style.opacity = 1; logo.style.willChange = "transform";
+        title.style.transform = titleT; title.style.opacity = 1; title.style.willChange = "transform";
+        letters.forEach(function (c) { c.style.opacity = 0; });
+
+        // 1) logo aparece de baixo para cima
+        logo.animate([{ clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 1000, easing: EASE, fill: "both" });
+        // 2) nome aparece letra por letra
+        letters.forEach(function (c, i) {
+          c.animate([{ opacity: 0, transform: "translateY(.5em)" }, { opacity: 1, transform: "none" }],
+            { duration: 700, delay: 750 + i * 38, easing: EASE, fill: "both" });
+        });
+        // 3) os dois vão para o lugar final
+        var go = 750 + letters.length * 38 + 700 + 450;
+        setTimeout(function () {
+          var a = logo.animate([{ transform: logoT }, { transform: "none" }], { duration: 1100, easing: MOVE, fill: "both" });
+          var b = title.animate([{ transform: titleT }, { transform: "none" }], { duration: 1100, easing: MOVE, fill: "both" });
+          setTimeout(finish, 800); // a grade começa a aparecer antes de terminar de subir
+          b.onfinish = function () {
+            logo.style.cssText = ""; title.style.cssText = ""; letters.forEach(function (c) { c.style.opacity = ""; });
+            logo.getAnimations().forEach(function (x) { x.cancel(); });
+            letters.forEach(function (c) { c.getAnimations().forEach(function (x) { x.cancel(); }); });
+            title.getAnimations().forEach(function (x) { x.cancel(); });
+            finish();
+          };
+        }, go);
+      } catch (e) { finish(); }
+    }
+    (document.fonts && document.fonts.load ? Promise.race([document.fonts.load('600 40px Montserrat'), new Promise(function (r) { setTimeout(r, 1500); })]) : Promise.resolve()).then(run, run);
+  })();
+  </script>
 </body>
 </html>
