@@ -95,8 +95,7 @@
 
     html:not(.intro) .item { animation: rise .8s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
     html:not(.intro) .slogan, html:not(.intro) .credit { animation: rise .9s var(--ease) backwards; animation-delay: .45s; }
-    #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 1.8s ease; }
-    html.bg-on #bg { opacity: 1; }
+    #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
     html.intro { overflow: hidden; }
     .intro .item, .intro .slogan, .intro .credit, .intro h1, .intro .brand { opacity: 0; }
     @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -162,45 +161,52 @@
   </footer>
 
   <script>
-  /* Fundo: fitas finas feitas de partículas douradas minúsculas, em loop contínuo (20 s). Sem desfoque. */
+  /* Fundo: partículas douradas soltas no espaço, atraídas por uma forma que se move devagar.
+     Começam a aparecer (esmaecendo) só depois que o logo e o nome chegaram ao lugar. */
   (function () {
     var c = document.getElementById("bg"); if (!c || !c.getContext) return;
-    var ctx = c.getContext("2d"), TAU = Math.PI * 2, LOOP = 20000;
+    var ctx = c.getContext("2d"), TAU = Math.PI * 2;
     var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var COLORS = ["#d5ba7e", "#b89e66", "#caa75f", "#a8782c", "#e0c98f"];
-    // cada fita: posição (cy), ondas (a1,f1,m1 / a2,f2,m2), largura que "torce" (w0 + w1*|sin|) e inclinação
-    var RIB = [   // poucas fitas, finas e com ondas largas
-      { cy: .30, a1: .13, f1: .55, m1: 1,  s1: 0.4, a2: .025, f2: 1.3, m2: -2, s2: 1, w0: .004, w1: .028, fw: 1.1, mw: 1,  sw: .5,  tilt: -.10, col: 0 },
-      { cy: .56, a1: .16, f1: .45, m1: -1, s1: 2.2, a2: .03,  f2: 1.1, m2: 2,  s2: 4, w0: .005, w1: .032, fw: .9,  mw: -1, sw: 1.5, tilt: .08,  col: 1 },
-      { cy: .80, a1: .11, f1: .65, m1: 1,  s1: 3.5, a2: .02,  f2: 1.5, m2: -1, s2: 2, w0: .004, w1: .024, fw: 1.3, mw: 2,  sw: 2.5, tilt: -.05, col: 3 }
-    ];
-    var W, H, DPR, dots = [], timer, last = 0;
-    function seed(n) { // posição fixa de cada partícula na fita (não tremem); mais densas nas bordas, como no vídeo
-      var a = []; for (var i = 0; i < n; i++) { var v = Math.random() * 2 - 1; a.push({ u: -.1 + 1.2 * (i + Math.random()) / n, v: Math.sign(v) * Math.pow(Math.abs(v), .5), a: .45 + .55 * Math.random(), r: .6 + .6 * Math.random() }); }
-      return a;
+    var COLORS = ["#d5ba7e", "#b89e66", "#caa75f", "#a8782c", "#e6d3a3"];
+    var W, H, K = 1, P = [], timer, t0 = null, last = 0, started = false;
+
+    function gauss() { return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; }
+    function form(th, t, out) { // a forma que atrai: um laço largo que muda de feitio devagar (ciclo de ~60 s)
+      var ph = t * TAU / 60000;
+      var x = Math.sin(th + .9 * Math.sin(ph)) , y = Math.sin(2 * th + 1.2 * ph) * (.75 + .2 * Math.sin(ph * 2 + 1));
+      var rot = .35 * Math.sin(ph + .5), cs = Math.cos(rot), sn = Math.sin(rot);
+      var X = x * .40 * W, Y = y * .30 * H;
+      out[0] = W / 2 + X * cs - Y * sn; out[1] = H / 2 + X * sn + Y * cs;
     }
-    function size() {
-      DPR = Math.min(window.devicePixelRatio || 1, 2); W = c.width = Math.round(innerWidth * DPR); H = c.height = Math.round(innerHeight * DPR);
-      var n = Math.round(Math.min(3600, Math.max(1500, innerWidth * innerHeight / 380)));
-      dots = RIB.map(function () { return seed(n); });
-      draw(last);
+    function build() {
+      K = Math.min(devicePixelRatio || 1, 2); W = c.width = Math.ceil(innerWidth * K); H = c.height = Math.ceil(innerHeight * K);
+      var n = innerWidth < 700 ? 1500 : 3200, base = .016 * Math.min(W, H); P = [];
+      for (var i = 0; i < n; i++) {
+        var far = Math.random() < .12, sp = base * (far ? 2 + 7 * Math.random() : .25 + 1.6 * Math.random() * Math.random());
+        var o = [gauss() * sp, gauss() * sp], o2 = [Math.random() * TAU, Math.random() * TAU];
+        P.push({ th: Math.random() * TAU, v: (.00006 + .00016 * Math.random()) * (Math.random() < .5 ? 1 : -1), ox: o[0], oy: o[1], w1: o2[0], w2: o2[1],
+          wa: base * (.15 + .5 * Math.random()), a: .5 + .5 * Math.random(), r: .8 + 1.2 * Math.random(), col: COLORS[(Math.random() * COLORS.length) | 0],
+          birth: Math.random() * 5000, x: 0, y: 0, tw: Math.random() * TAU });
+      }
+      var f = [0, 0]; P.forEach(function (q) { form(q.th, 0, f); q.x = f[0] + q.ox; q.y = f[1] + q.oy; });
     }
-    function draw(t) {
-      var ph = (t % LOOP) / LOOP; ctx.clearRect(0, 0, W, H);
-      for (var k = 0; k < RIB.length; k++) {
-        var R = RIB[k], D = dots[k]; ctx.fillStyle = COLORS[R.col];
-        for (var i = 0; i < D.length; i++) {
-          var d = D[i], u = d.u;
-          var y = R.cy + R.tilt * (u - .5) + R.a1 * Math.sin(TAU * (R.f1 * u + R.m1 * ph) + R.s1) + R.a2 * Math.sin(TAU * (R.f2 * u + R.m2 * ph) + R.s2);
-          var w = R.w0 + R.w1 * Math.abs(Math.sin(Math.PI * R.fw * u + TAU * R.mw * ph + R.sw));
-          var sz = d.r * DPR; ctx.globalAlpha = d.a; ctx.fillRect(u * W, (y + d.v * w) * H, sz, sz);
-        }
+    function frame(now) {
+      requestAnimationFrame(frame); if (now - last < 24) return; var dt = Math.min(now - last, 80); last = now;
+      if (t0 === null) t0 = now; var t = now - t0, k = 1 - Math.exp(-dt * .0022), f = [0, 0];
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < P.length; i++) {
+        var q = P[i]; q.th += q.v * dt; form(q.th, now, f);
+        var tx = f[0] + q.ox + Math.sin(now * .00035 + q.w1) * q.wa, ty = f[1] + q.oy + Math.cos(now * .00031 + q.w2) * q.wa;
+        q.x += (tx - q.x) * k; q.y += (ty - q.y) * k;
+        var fade = Math.min(1, Math.max(0, (t - q.birth) / 1800)); if (fade <= 0) continue;
+        ctx.globalAlpha = q.a * fade * (.75 + .25 * Math.sin(now * .0012 + q.tw));
+        ctx.fillStyle = q.col; var sz = q.r * K; ctx.fillRect(q.x - sz / 2, q.y - sz / 2, sz, sz);
       }
     }
-    function loop(now) { requestAnimationFrame(loop); if (now - last < 33) return; last = now; draw(now); }
-    size(); addEventListener("resize", function () { clearTimeout(timer); timer = setTimeout(size, 200); });
-    document.documentElement.classList.add("bg-on");
-    if (!reduce) requestAnimationFrame(loop);
+    function start() { if (started) return; started = true; if (reduce) { t0 = -1e9; draw1(); } else requestAnimationFrame(frame); }
+    function draw1() { var f = [0, 0]; ctx.clearRect(0, 0, W, H); P.forEach(function (q) { form(q.th, 0, f); ctx.globalAlpha = q.a; ctx.fillStyle = q.col; var sz = q.r * K; ctx.fillRect(f[0] + q.ox - sz / 2, f[1] + q.oy - sz / 2, sz, sz); }); }
+    build(); addEventListener("resize", function () { clearTimeout(timer); timer = setTimeout(function () { build(); if (reduce) draw1(); }, 200); });
+    if (document.documentElement.classList.contains("intro")) { document.addEventListener("introdone", start); setTimeout(start, 7000); } else start();
   })();
   </script>
 
@@ -253,10 +259,10 @@
             logo.getAnimations({ subtree: true }).forEach(function (x) { x.cancel(); });
             letters.forEach(function (c) { c.getAnimations().forEach(function (x) { x.cancel(); }); });
             title.getAnimations().forEach(function (x) { x.cancel(); });
-            finish();
+            finish(); document.dispatchEvent(new Event("introdone"));
           };
         }, go);
-      } catch (e) { finish(); }
+      } catch (e) { finish(); document.dispatchEvent(new Event("introdone")); }
     }
     (document.fonts && document.fonts.load ? Promise.race([document.fonts.load('600 40px Montserrat'), new Promise(function (r) { setTimeout(r, 1500); })]) : Promise.resolve()).then(run, run);
   })();
