@@ -53,6 +53,7 @@
 
     .brand { position: absolute; top: max(20px, env(safe-area-inset-top)); left: max(20px, env(safe-area-inset-left)); display: block; line-height: 0; border-radius: 10px; transition: transform .4s var(--ease), opacity .3s; }
     .brand svg { height: clamp(34px, 4.4vw, 48px); width: auto; display: block; }
+    .wipe { stroke-dasharray: 1; stroke-dashoffset: 0; }
     .tri-intro { display: none; }
     .intro .tri-intro { display: inline; }
     .intro .tri-final { display: none; }
@@ -92,6 +93,9 @@
 
     html:not(.intro) .item { animation: rise .8s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
     html:not(.intro) .slogan, html:not(.intro) .credit { animation: rise .9s var(--ease) backwards; animation-delay: .45s; }
+    #bg { position: fixed; inset: -4%; width: 108%; height: 108%; z-index: -1; pointer-events: none; filter: blur(5px); opacity: 0; transition: opacity 1.8s ease; }
+    html.bg-on #bg { opacity: .85; }
+    @media (max-width: 700px) { #bg { filter: blur(4px); } }
     html.intro { overflow: hidden; }
     .intro .item, .intro .slogan, .intro .credit, .intro h1, .intro .brand { opacity: 0; }
     @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -102,19 +106,19 @@
   </style>
 </head>
 <body>
+  <canvas id="bg" aria-hidden="true"></canvas>
   <a class="brand" href="/" aria-label="Abagnale Developments"><svg viewBox="298 299 484 481" width="48" height="48" aria-hidden="true" focusable="false">
       <defs>
         <mask id="m-logo" maskUnits="userSpaceOnUse" x="298" y="299" width="484" height="481">
           <rect x="298" y="299" width="484" height="481" fill="#fff"/>
           <polygon fill="#000" points="573,365 610,340 640,430 607,437 503,665 649,665 706,776 638,780 601,718 392,718"/>
         </mask>
+        <clipPath id="c-gap"><polygon points="573,365 610,340 640,430 607,437 503,665 649,665 706,776 638,780 601,718 392,718"/></clipPath>
       </defs>
       <polygon class="tri-final" fill="#b89e66" mask="url(#m-logo)" points="298,780 539,299 782,777"/>
       <g class="tri-intro">
         <polygon fill="#b89e66" points="298,780 539,299 782,777"/>
-        <polygon class="seg" data-dir="up" fill="#fff" points="545,665 649,665 706,776 638,780 601,718 545,718"/>
-        <polygon class="seg" data-dir="left" fill="#fff" points="392,718 419,665 575,665 575,718"/>
-        <polygon class="seg" data-dir="up" fill="#fff" points="406,690 573,365 610,340 640,430 607,437 503,665 560,665 560,690"/>
+        <g clip-path="url(#c-gap)"><path class="wipe" pathLength="1" d="M680 800 L627 691 L452 691 L640 300" fill="none" stroke="#fff" stroke-width="96" stroke-linejoin="miter" stroke-miterlimit="10"/></g>
       </g>
     </svg></a>
 
@@ -157,6 +161,51 @@
   </footer>
 
   <script>
+  /* Fundo: fitas douradas de partículas, desfocadas, em loop contínuo (16 s). */
+  (function () {
+    var c = document.getElementById("bg"); if (!c || !c.getContext) return;
+    var ctx = c.getContext("2d"), TAU = Math.PI * 2, LOOP = 16000;
+    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var COLORS = ["#d5ba7e", "#b89e66", "#caa75f", "#a8782c", "#e6d3a3"];
+    var RIB = [
+      { cy: .28, a1: .15, f1: 1.1, m1: 1,  s1: 0, a2: .07, f2: 2.3, m2: -2, s2: 1, w0: .03, w1: .10, fw: 1.6, mw: 1,  sw: .5,  tilt: -.12, col: 0 },
+      { cy: .52, a1: .20, f1: .8,  m1: -1, s1: 2, a2: .08, f2: 1.9, m2: 2,  s2: 4, w0: .04, w1: .12, fw: 1.2, mw: -1, sw: 1.5, tilt: .10,  col: 1 },
+      { cy: .74, a1: .14, f1: 1.3, m1: 1,  s1: 3, a2: .09, f2: 2.7, m2: -1, s2: 2, w0: .03, w1: .09, fw: 2.0, mw: 2,  sw: 2.5, tilt: -.06, col: 2 },
+      { cy: .40, a1: .22, f1: .6,  m1: 1,  s1: 5, a2: .06, f2: 1.7, m2: -1, s2: 0, w0: .02, w1: .07, fw: 2.4, mw: -1, sw: 3.5, tilt: .20,  col: 3 },
+      { cy: .88, a1: .11, f1: 1.0, m1: -1, s1: 1, a2: .07, f2: 2.1, m2: 1,  s2: 3, w0: .03, w1: .08, fw: 1.4, mw: 1,  sw: 4.5, tilt: -.15, col: 4 },
+      { cy: .14, a1: .10, f1: 1.4, m1: 2,  s1: 2, a2: .05, f2: 2.6, m2: 1,  s2: 5, w0: .02, w1: .06, fw: 1.8, mw: -2, sw: 5,   tilt: .08,  col: 1 }
+    ];
+    var W, H, dots = [], timer, last = 0;
+    function seed(n) { // posições fixas de cada partícula na fita (sem tremer)
+      var a = []; for (var i = 0; i < n; i++) { var v = Math.random() * 2 - 1; a.push({ u: -.15 + 1.3 * (i + Math.random()) / n, v: Math.sign(v) * Math.pow(Math.abs(v), .7), a: .35 + .6 * Math.random(), r: .9 + 1.7 * Math.random() }); }
+      return a;
+    }
+    function size() {
+      var k = innerWidth < 700 ? .4 : .5; W = c.width = Math.ceil(innerWidth * 1.08 * k); H = c.height = Math.ceil(innerHeight * 1.08 * k);
+      var n = Math.round(Math.min(1500, Math.max(600, innerWidth * innerHeight / 900)));
+      dots = RIB.map(function () { return seed(n); });
+      draw(last);
+    }
+    function draw(t) {
+      var ph = (t % LOOP) / LOOP; ctx.clearRect(0, 0, W, H);
+      for (var k = 0; k < RIB.length; k++) {
+        var R = RIB[k], D = dots[k]; ctx.fillStyle = COLORS[R.col];
+        for (var i = 0; i < D.length; i++) {
+          var d = D[i], u = d.u;
+          var y = R.cy + R.tilt * (u - .5) + R.a1 * Math.sin(TAU * (R.f1 * u + R.m1 * ph) + R.s1) + R.a2 * Math.sin(TAU * (R.f2 * u + R.m2 * ph) + R.s2);
+          var w = R.w0 + R.w1 * Math.abs(Math.sin(Math.PI * R.fw * u + TAU * R.mw * ph + R.sw));
+          ctx.globalAlpha = d.a; ctx.beginPath(); ctx.arc(u * W, (y + d.v * w) * H, d.r * W / 800, 0, TAU); ctx.fill();
+        }
+      }
+    }
+    function loop(now) { requestAnimationFrame(loop); if (now - last < 33) return; last = now; draw(now); }
+    size(); addEventListener("resize", function () { clearTimeout(timer); timer = setTimeout(size, 200); });
+    document.documentElement.classList.add("bg-on");
+    if (!reduce) requestAnimationFrame(loop);
+  })();
+  </script>
+
+  <script>
   /* Abertura: logo no centro, nome aparece, e os dois sobem para o lugar final. */
   (function () {
     var root = document.documentElement;
@@ -185,27 +234,23 @@
         title.style.transform = titleT; title.style.opacity = 1; title.style.willChange = "transform";
         letters.forEach(function (c) { c.style.opacity = 0; });
 
-        // 1) triângulo dourado inteiro aparece; depois o caminho branco corta de baixo para cima
-        logo.animate([{ opacity: 0, transform: logoT + " scale(.88)" }, { opacity: 1, transform: logoT }], { duration: 550, easing: EASE, fill: "both" });
-        var segs = logo.querySelectorAll(".seg"), plan = [[650, 260, "linear"], [910, 300, "linear"], [1210, 650, "cubic-bezier(.25,.6,.35,1)"]];
-        segs.forEach(function (sg, i) {
-          var hide = sg.getAttribute("data-dir") === "left" ? "inset(0 0 0 100%)" : "inset(100% 0 0 0)";
-          sg.style.clipPath = hide;
-          sg.animate([{ clipPath: hide }, { clipPath: "inset(0 0 0 0)" }], { delay: plan[i][0], duration: plan[i][1], easing: plan[i][2], fill: "both" });
-        });
+        // 1) triângulo dourado inteiro aparece; depois um "rodo" limpa o caminho: sobe na diagonal, vai reto para a esquerda e sobe na diagonal
+        logo.animate([{ opacity: 0, transform: logoT + " scale(.88)" }, { opacity: 1, transform: logoT }], { duration: 350, easing: EASE, fill: "both" });
+        var wipe = logo.querySelector(".wipe"); wipe.style.strokeDashoffset = 1;
+        wipe.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { delay: 250, duration: 1000, easing: "cubic-bezier(.3,.1,.4,1)", fill: "both" });
         // 2) nome aparece letra por letra
         letters.forEach(function (c, i) {
           c.animate([{ opacity: 0, transform: "translateY(.5em)" }, { opacity: 1, transform: "none" }],
-            { duration: 700, delay: 2000 + i * 38, easing: EASE, fill: "both" });
+            { duration: 450, delay: 1000 + i * 28, easing: EASE, fill: "both" });
         });
         // 3) os dois vão para o lugar final
-        var go = 2000 + letters.length * 38 + 700 + 350;
+        var go = 2050;
         setTimeout(function () {
-          var a = logo.animate([{ transform: logoT }, { transform: "none" }], { duration: 1100, easing: MOVE, fill: "both" });
-          var b = title.animate([{ transform: titleT }, { transform: "none" }], { duration: 1100, easing: MOVE, fill: "both" });
-          setTimeout(finish, 800); // a grade começa a aparecer antes de terminar de subir
+          var a = logo.animate([{ transform: logoT }, { transform: "none" }], { duration: 950, easing: MOVE, fill: "both" });
+          var b = title.animate([{ transform: titleT }, { transform: "none" }], { duration: 950, easing: MOVE, fill: "both" });
+          setTimeout(finish, 550); // a grade começa a aparecer antes de terminar de subir
           b.onfinish = function () {
-            logo.style.cssText = ""; title.style.cssText = ""; letters.forEach(function (c) { c.style.opacity = ""; });
+            logo.style.cssText = ""; wipe.style.strokeDashoffset = ""; title.style.cssText = ""; letters.forEach(function (c) { c.style.opacity = ""; });
             logo.getAnimations({ subtree: true }).forEach(function (x) { x.cancel(); });
             letters.forEach(function (c) { c.getAnimations().forEach(function (x) { x.cancel(); }); });
             title.getAnimations().forEach(function (x) { x.cancel(); });
