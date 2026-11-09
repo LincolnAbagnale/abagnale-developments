@@ -31,6 +31,7 @@
       --ease: cubic-bezier(.2, .8, .2, 1);
       --w: clamp(140px, 42vw, 184px);   /* largura de cada produto */
       --gap: clamp(20px, 4vw, 48px);    /* espaço entre produtos */
+      --bw: clamp(34px, 4.4vw, 48px);   /* largura do logo */
     }
     * { box-sizing: border-box; margin: 0; }
     html { -webkit-text-size-adjust: 100%; }
@@ -42,7 +43,6 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Helvetica Neue", Arial, sans-serif;
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     }
-    header { padding: clamp(88px, 11vh, 120px) 0 clamp(48px, 9vh, 96px); text-align: center; }
     h1 {
       font-family: var(--display); font-weight: 600; text-transform: uppercase;
       font-size: clamp(21px, 3.7vw, 46px); letter-spacing: .14em; padding-left: .14em; line-height: 1.2; text-wrap: balance;
@@ -51,7 +51,7 @@
     h1 .w + .w { margin-left: .42em; }
     h1 .c { display: inline-block; }
 
-    .brand { position: absolute; top: max(20px, env(safe-area-inset-top)); left: max(20px, env(safe-area-inset-left)); display: block; line-height: 0; border-radius: 10px; transition: transform .4s var(--ease), opacity .3s; }
+    .brand { display: block; line-height: 0; border-radius: 10px; justify-self: start; transition: transform .4s var(--ease), opacity .3s; }
     .brand svg { height: clamp(34px, 4.4vw, 48px); width: auto; display: block; }
     .wipe { stroke-dasharray: 1; stroke-dashoffset: 0; }
     .tri-intro { display: none; }
@@ -60,9 +60,10 @@
     @media (hover: hover) { .brand:hover { transform: scale(1.1); } }
     .brand:active { transform: scale(.95); transition-duration: .15s; }
     .brand:focus-visible { outline: 3px solid var(--ring); outline-offset: 6px; }
-    @media (min-width: 900px) { .brand { top: 32px; left: 40px; } }
 
-    header { align-self: start; }
+    header { align-self: start; width: 100%; display: grid; grid-template-columns: var(--bw) minmax(0, 1fr) var(--bw); align-items: center; column-gap: 12px; padding: max(20px, env(safe-area-inset-top)) clamp(20px, 3vw, 40px) 0; }
+    header h1 { grid-column: 2; text-align: center; }
+    .brand { grid-column: 1; grid-row: 1; }
     footer { align-self: end; }
     main { width: 100%; display: flex; justify-content: center; align-items: center; }
     .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(36px, 6vw, 64px) var(--gap); max-width: 1240px; }
@@ -107,6 +108,8 @@
 </head>
 <body>
   <canvas id="bg" aria-hidden="true"></canvas>
+
+  <header>
   <a class="brand" href="/" aria-label="Abagnale Developments"><svg viewBox="298 299 484 481" width="48" height="48" aria-hidden="true" focusable="false">
       <defs>
         <mask id="m-logo" maskUnits="userSpaceOnUse" x="298" y="299" width="484" height="481">
@@ -121,8 +124,6 @@
         <g clip-path="url(#c-gap)"><path class="wipe" pathLength="1" d="M680 800 L627 691 L452 691 L640 300" fill="none" stroke="#fff" stroke-width="96" stroke-linejoin="miter" stroke-miterlimit="10"/></g>
       </g>
     </svg></a>
-
-  <header>
     <h1>Abagnale Developments</h1>
   </header>
 
@@ -161,51 +162,68 @@
   </footer>
 
   <script>
-  /* Fundo: partículas douradas soltas no espaço, atraídas por uma forma que se move devagar.
-     Começam a aparecer (esmaecendo) só depois que o logo e o nome chegaram ao lugar. */
+  /* Fundo: partículas douradas soltas, atraídas por veios de mármore na diagonal.
+     Aparecem (esmaecendo) só depois que o logo e o nome chegaram ao lugar.
+     O mouse as afasta e elas voltam devagar para o desenho. */
   (function () {
     var c = document.getElementById("bg"); if (!c || !c.getContext) return;
     var ctx = c.getContext("2d"), TAU = Math.PI * 2;
     var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     var COLORS = ["#d5ba7e", "#b89e66", "#caa75f", "#a8782c", "#e6d3a3"];
-    var W, H, K = 1, P = [], timer, t0 = null, last = 0, started = false;
+    var W, H, K = 1, D, P = [], timer, t0 = null, last = 0, started = false, mouse = null, A = [0, 0], N = [0, 0], L = 0, O = [0, 0];
+    var WEIGHT = [.40, .27, .19, .14], SPREAD = [1.1, .9, .7, .7];
 
     function gauss() { return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; }
-    function form(th, t, out) { // a forma que atrai: um laço largo que muda de feitio devagar (ciclo de ~60 s)
-      var ph = t * TAU / 60000;
-      var x = Math.sin(th + .9 * Math.sin(ph)) , y = Math.sin(2 * th + 1.2 * ph) * (.75 + .2 * Math.sin(ph * 2 + 1));
-      var rot = .35 * Math.sin(ph + .5), cs = Math.cos(rot), sn = Math.sin(rot);
-      var X = x * .40 * W, Y = y * .30 * H;
-      out[0] = W / 2 + X * cs - Y * sn; out[1] = H / 2 + X * sn + Y * cs;
+    function offset(k, s, ph) { // quanto o veio se afasta da diagonal (varia devagar com o tempo)
+      if (k === 0) return D * (.07 * Math.sin(TAU * 1.3 * s + .6 + ph) + .03 * Math.sin(TAU * 3.1 * s + 1.7 - ph * 1.3));
+      if (k === 1) return D * (.16 * Math.sin(TAU * .8 * s + 1 + ph * .7) + .02 * Math.sin(TAU * 3.7 * s + ph));
+      if (k === 2) return D * (.26 + .06 * Math.sin(TAU * 1.1 * s + 2.5 + ph * .9) + .02 * Math.sin(TAU * 3.3 * s - ph));
+      return D * (-.30 + .07 * Math.sin(TAU * .9 * s + 4 + ph * .8) + .02 * Math.sin(TAU * 2.9 * s + ph));
+    }
+    function vein(k, s, now, out) {
+      var d = offset(k, s, now * TAU / 70000);
+      out[0] = O[0] + A[0] * L * s + N[0] * d; out[1] = O[1] + A[1] * L * s + N[1] * d;
     }
     function build() {
-      K = Math.min(devicePixelRatio || 1, 2); W = c.width = Math.ceil(innerWidth * K); H = c.height = Math.ceil(innerHeight * K);
-      var n = innerWidth < 700 ? 1500 : 3200, base = .016 * Math.min(W, H); P = [];
+      K = Math.min(devicePixelRatio || 1, 2); W = c.width = Math.ceil(innerWidth * K); H = c.height = Math.ceil(innerHeight * K); D = Math.min(W, H);
+      var x0 = -.08 * W, y0 = 1.08 * H, x1 = 1.08 * W, y1 = -.08 * H; L = Math.hypot(x1 - x0, y1 - y0);
+      A = [(x1 - x0) / L, (y1 - y0) / L]; N = [-A[1], A[0]]; O = [x0, y0];
+      var n = innerWidth < 700 ? 1600 : 3200, base = .014 * D; P = []; var f = [0, 0];
       for (var i = 0; i < n; i++) {
-        var far = Math.random() < .12, sp = base * (far ? 2 + 7 * Math.random() : .25 + 1.6 * Math.random() * Math.random());
-        var o = [gauss() * sp, gauss() * sp], o2 = [Math.random() * TAU, Math.random() * TAU];
-        P.push({ th: Math.random() * TAU, v: (.00006 + .00016 * Math.random()) * (Math.random() < .5 ? 1 : -1), ox: o[0], oy: o[1], w1: o2[0], w2: o2[1],
-          wa: base * (.15 + .5 * Math.random()), a: .5 + .5 * Math.random(), r: .8 + 1.2 * Math.random(), col: COLORS[(Math.random() * COLORS.length) | 0],
-          birth: Math.random() * 5000, x: 0, y: 0, tw: Math.random() * TAU });
+        var r = Math.random(), k = r < WEIGHT[0] ? 0 : r < WEIGHT[0] + WEIGHT[1] ? 1 : r < WEIGHT[0] + WEIGHT[1] + WEIGHT[2] ? 2 : 3;
+        var far = Math.random() < .1, sp = base * SPREAD[k] * (far ? 2 + 6 * Math.random() : .25 + 1.6 * Math.random() * Math.random());
+        var q = { k: k, s0: .1 + .8 * Math.random(), sa: .03 + .09 * Math.random(), sw: .00006 + .00012 * Math.random(), sph: Math.random() * TAU,
+          ox: gauss() * sp, oy: gauss() * sp, w1: Math.random() * TAU, w2: Math.random() * TAU, wa: base * (.15 + .5 * Math.random()),
+          a: .5 + .5 * Math.random(), r: .8 + 1.2 * Math.random(), col: COLORS[(Math.random() * COLORS.length) | 0],
+          birth: Math.random() * 5000, tw: Math.random() * TAU, x: 0, y: 0, dx: 0, dy: 0 };
+        vein(k, q.s0, 0, f); q.x = f[0] + q.ox; q.y = f[1] + q.oy; P.push(q);
       }
-      var f = [0, 0]; P.forEach(function (q) { form(q.th, 0, f); q.x = f[0] + q.ox; q.y = f[1] + q.oy; });
     }
     function frame(now) {
       requestAnimationFrame(frame); if (now - last < 24) return; var dt = Math.min(now - last, 80); last = now;
-      if (t0 === null) t0 = now; var t = now - t0, k = 1 - Math.exp(-dt * .0022), f = [0, 0];
+      if (t0 === null) t0 = now; var t = now - t0, k = 1 - Math.exp(-dt * .0022), back = Math.exp(-dt * .00055), f = [0, 0];
+      var R = 150 * K, R2 = R * R, mx = mouse ? mouse[0] : 0, my = mouse ? mouse[1] : 0;
       ctx.clearRect(0, 0, W, H);
       for (var i = 0; i < P.length; i++) {
-        var q = P[i]; q.th += q.v * dt; form(q.th, now, f);
+        var q = P[i]; vein(q.k, q.s0 + q.sa * Math.sin(now * q.sw + q.sph), now, f);
         var tx = f[0] + q.ox + Math.sin(now * .00035 + q.w1) * q.wa, ty = f[1] + q.oy + Math.cos(now * .00031 + q.w2) * q.wa;
         q.x += (tx - q.x) * k; q.y += (ty - q.y) * k;
+        q.dx *= back; q.dy *= back; // o afastamento some devagar (cerca de 2 s)
+        if (mouse) {
+          var ddx = q.x + q.dx - mx, ddy = q.y + q.dy - my, d2 = ddx * ddx + ddy * ddy;
+          if (d2 < R2 && d2 > 1) { var d = Math.sqrt(d2), s = (1 - d / R); s *= s; var push = s * 5.5 * K * (dt / 16); q.dx += ddx / d * push; q.dy += ddy / d * push; }
+        }
         var fade = Math.min(1, Math.max(0, (t - q.birth) / 1800)); if (fade <= 0) continue;
         ctx.globalAlpha = q.a * fade * (.75 + .25 * Math.sin(now * .0012 + q.tw));
-        ctx.fillStyle = q.col; var sz = q.r * K; ctx.fillRect(q.x - sz / 2, q.y - sz / 2, sz, sz);
+        ctx.fillStyle = q.col; var sz = q.r * K; ctx.fillRect(q.x + q.dx - sz / 2, q.y + q.dy - sz / 2, sz, sz);
       }
     }
-    function start() { if (started) return; started = true; if (reduce) { t0 = -1e9; draw1(); } else requestAnimationFrame(frame); }
-    function draw1() { var f = [0, 0]; ctx.clearRect(0, 0, W, H); P.forEach(function (q) { form(q.th, 0, f); ctx.globalAlpha = q.a; ctx.fillStyle = q.col; var sz = q.r * K; ctx.fillRect(f[0] + q.ox - sz / 2, f[1] + q.oy - sz / 2, sz, sz); }); }
-    build(); addEventListener("resize", function () { clearTimeout(timer); timer = setTimeout(function () { build(); if (reduce) draw1(); }, 200); });
+    function still() { var f = [0, 0]; ctx.clearRect(0, 0, W, H); P.forEach(function (q) { vein(q.k, q.s0, 0, f); ctx.globalAlpha = q.a; ctx.fillStyle = q.col; var sz = q.r * K; ctx.fillRect(f[0] + q.ox - sz / 2, f[1] + q.oy - sz / 2, sz, sz); }); }
+    function start() { if (started) return; started = true; if (reduce) still(); else requestAnimationFrame(frame); }
+    addEventListener("pointermove", function (e) { mouse = [e.clientX * K, e.clientY * K]; }, { passive: true });
+    document.addEventListener("pointerleave", function () { mouse = null; });
+    addEventListener("blur", function () { mouse = null; });
+    build(); addEventListener("resize", function () { clearTimeout(timer); timer = setTimeout(function () { build(); if (reduce) still(); }, 200); });
     if (document.documentElement.classList.contains("intro")) { document.addEventListener("introdone", start); setTimeout(start, 7000); } else start();
   })();
   </script>
