@@ -67,6 +67,14 @@
     footer { align-self: end; }
     main { width: 100%; display: flex; justify-content: center; align-items: center; }
     .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(36px, 6vw, 64px) var(--gap); max-width: 1400px; }
+    @media (max-width: 699px) {
+      :root { --w: calc((100vw - 2 * 16px - 2 * 14px) / 3); --gap: 14px; }
+      .grid { max-width: none; gap: 28px 14px; flex-wrap: wrap; }
+      .tile { border-radius: 22%; }
+      .name { margin-top: 12px; font-size: 13px; }
+      .desc { margin-top: 4px; font-size: 11px; line-height: 1.35; }
+      .soon { margin-top: 6px; font-size: 9.5px; letter-spacing: .12em; }
+    }
     @media (min-width: 700px) and (max-width: 1459px) { .grid { max-width: calc(3 * var(--w) + 2 * var(--gap) + 2px); } }
 
     .item {
