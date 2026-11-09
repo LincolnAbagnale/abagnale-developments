@@ -169,15 +169,10 @@
     var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     var COLORS = ["#d5ba7e", "#b89e66", "#caa75f", "#a8782c", "#e0c98f"];
     // cada fita: posição (cy), ondas (a1,f1,m1 / a2,f2,m2), largura que "torce" (w0 + w1*|sin|) e inclinação
-    var RIB = [
-      { cy: .22, a1: .13, f1: 1.1, m1: 1,  s1: 0,  a2: .06, f2: 2.3, m2: -2, s2: 1, w0: .000, w1: .050, fw: 1.6, mw: 1,  sw: .5,  tilt: -.12, col: 0 },
-      { cy: .48, a1: .19, f1: .8,  m1: -1, s1: 2,  a2: .07, f2: 1.9, m2: 2,  s2: 4, w0: .000, w1: .060, fw: 1.2, mw: -1, sw: 1.5, tilt: .10,  col: 1 },
-      { cy: .72, a1: .13, f1: 1.3, m1: 1,  s1: 3,  a2: .08, f2: 2.7, m2: -1, s2: 2, w0: .000, w1: .045, fw: 2.0, mw: 2,  sw: 2.5, tilt: -.06, col: 2 },
-      { cy: .36, a1: .21, f1: .6,  m1: 1,  s1: 5,  a2: .05, f2: 1.7, m2: -1, s2: 0, w0: .000, w1: .040, fw: 2.4, mw: -1, sw: 3.5, tilt: .20,  col: 3 },
-      { cy: .86, a1: .10, f1: 1.0, m1: -1, s1: 1,  a2: .06, f2: 2.1, m2: 1,  s2: 3, w0: .000, w1: .045, fw: 1.4, mw: 1,  sw: 4.5, tilt: -.15, col: 4 },
-      { cy: .10, a1: .09, f1: 1.4, m1: 2,  s1: 2,  a2: .05, f2: 2.6, m2: 1,  s2: 5, w0: .000, w1: .035, fw: 1.8, mw: -2, sw: 5,   tilt: .08,  col: 1 },
-      { cy: .60, a1: .17, f1: .9,  m1: 1,  s1: 4,  a2: .06, f2: 2.0, m2: -2, s2: 2, w0: .000, w1: .050, fw: 1.5, mw: 1,  sw: 2,   tilt: .05,  col: 0 },
-      { cy: .30, a1: .15, f1: 1.2, m1: -1, s1: 6,  a2: .05, f2: 2.4, m2: 2,  s2: 1, w0: .000, w1: .040, fw: 2.1, mw: -2, sw: 1,   tilt: -.08, col: 2 }
+    var RIB = [   // poucas fitas, finas e com ondas largas
+      { cy: .30, a1: .13, f1: .55, m1: 1,  s1: 0.4, a2: .025, f2: 1.3, m2: -2, s2: 1, w0: .004, w1: .028, fw: 1.1, mw: 1,  sw: .5,  tilt: -.10, col: 0 },
+      { cy: .56, a1: .16, f1: .45, m1: -1, s1: 2.2, a2: .03,  f2: 1.1, m2: 2,  s2: 4, w0: .005, w1: .032, fw: .9,  mw: -1, sw: 1.5, tilt: .08,  col: 1 },
+      { cy: .80, a1: .11, f1: .65, m1: 1,  s1: 3.5, a2: .02,  f2: 1.5, m2: -1, s2: 2, w0: .004, w1: .024, fw: 1.3, mw: 2,  sw: 2.5, tilt: -.05, col: 3 }
     ];
     var W, H, DPR, dots = [], timer, last = 0;
     function seed(n) { // posição fixa de cada partícula na fita (não tremem); mais densas nas bordas, como no vídeo
