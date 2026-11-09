@@ -52,7 +52,10 @@
     h1 .c { display: inline-block; }
 
     .brand { position: absolute; top: max(20px, env(safe-area-inset-top)); left: max(20px, env(safe-area-inset-left)); display: block; line-height: 0; border-radius: 10px; transition: transform .4s var(--ease), opacity .3s; }
-    .brand img { height: clamp(34px, 4.4vw, 48px); width: auto; display: block; }
+    .brand svg { height: clamp(34px, 4.4vw, 48px); width: auto; display: block; }
+    .tri-intro { display: none; }
+    .intro .tri-intro { display: inline; }
+    .intro .tri-final { display: none; }
     @media (hover: hover) { .brand:hover { transform: scale(1.1); } }
     .brand:active { transform: scale(.95); transition-duration: .15s; }
     .brand:focus-visible { outline: 3px solid var(--ring); outline-offset: 6px; }
@@ -99,7 +102,21 @@
   </style>
 </head>
 <body>
-  <a class="brand" href="/" aria-label="Abagnale Developments"><img src="/img/logo.png" width="113" height="112" alt="" decoding="async"></a>
+  <a class="brand" href="/" aria-label="Abagnale Developments"><svg viewBox="298 299 484 481" width="48" height="48" aria-hidden="true" focusable="false">
+      <defs>
+        <mask id="m-logo" maskUnits="userSpaceOnUse" x="298" y="299" width="484" height="481">
+          <rect x="298" y="299" width="484" height="481" fill="#fff"/>
+          <polygon fill="#000" points="573,365 610,340 640,430 607,437 503,665 649,665 706,776 638,780 601,718 392,718"/>
+        </mask>
+      </defs>
+      <polygon class="tri-final" fill="#b89e66" mask="url(#m-logo)" points="298,780 539,299 782,777"/>
+      <g class="tri-intro">
+        <polygon fill="#b89e66" points="298,780 539,299 782,777"/>
+        <polygon class="seg" data-dir="up" fill="#fff" points="545,665 649,665 706,776 638,780 601,718 545,718"/>
+        <polygon class="seg" data-dir="left" fill="#fff" points="392,718 419,665 575,665 575,718"/>
+        <polygon class="seg" data-dir="up" fill="#fff" points="406,690 573,365 610,340 640,430 607,437 503,665 560,665 560,690"/>
+      </g>
+    </svg></a>
 
   <header>
     <h1>Abagnale Developments</h1>
@@ -168,22 +185,28 @@
         title.style.transform = titleT; title.style.opacity = 1; title.style.willChange = "transform";
         letters.forEach(function (c) { c.style.opacity = 0; });
 
-        // 1) logo aparece de baixo para cima
-        logo.animate([{ clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 1000, easing: EASE, fill: "both" });
+        // 1) triângulo dourado inteiro aparece; depois o caminho branco corta de baixo para cima
+        logo.animate([{ opacity: 0, transform: logoT + " scale(.88)" }, { opacity: 1, transform: logoT }], { duration: 550, easing: EASE, fill: "both" });
+        var segs = logo.querySelectorAll(".seg"), plan = [[650, 260, "linear"], [910, 300, "linear"], [1210, 650, "cubic-bezier(.25,.6,.35,1)"]];
+        segs.forEach(function (sg, i) {
+          var hide = sg.getAttribute("data-dir") === "left" ? "inset(0 0 0 100%)" : "inset(100% 0 0 0)";
+          sg.style.clipPath = hide;
+          sg.animate([{ clipPath: hide }, { clipPath: "inset(0 0 0 0)" }], { delay: plan[i][0], duration: plan[i][1], easing: plan[i][2], fill: "both" });
+        });
         // 2) nome aparece letra por letra
         letters.forEach(function (c, i) {
           c.animate([{ opacity: 0, transform: "translateY(.5em)" }, { opacity: 1, transform: "none" }],
-            { duration: 700, delay: 750 + i * 38, easing: EASE, fill: "both" });
+            { duration: 700, delay: 2000 + i * 38, easing: EASE, fill: "both" });
         });
         // 3) os dois vão para o lugar final
-        var go = 750 + letters.length * 38 + 700 + 450;
+        var go = 2000 + letters.length * 38 + 700 + 350;
         setTimeout(function () {
           var a = logo.animate([{ transform: logoT }, { transform: "none" }], { duration: 1100, easing: MOVE, fill: "both" });
           var b = title.animate([{ transform: titleT }, { transform: "none" }], { duration: 1100, easing: MOVE, fill: "both" });
           setTimeout(finish, 800); // a grade começa a aparecer antes de terminar de subir
           b.onfinish = function () {
             logo.style.cssText = ""; title.style.cssText = ""; letters.forEach(function (c) { c.style.opacity = ""; });
-            logo.getAnimations().forEach(function (x) { x.cancel(); });
+            logo.getAnimations({ subtree: true }).forEach(function (x) { x.cancel(); });
             letters.forEach(function (c) { c.getAnimations().forEach(function (x) { x.cancel(); }); });
             title.getAnimations().forEach(function (x) { x.cancel(); });
             finish();
