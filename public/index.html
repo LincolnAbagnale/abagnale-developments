@@ -75,13 +75,6 @@
       .desc { margin-top: 4px; font-size: 11px; line-height: 1.35; }
       .soon { margin-top: 6px; font-size: 9.5px; letter-spacing: .12em; }
     }
-    /* 7 projetos: telas médias em 4 + 3; telas largas todos os 7 na mesma linha (o tamanho se ajusta à largura da tela) */
-    @media (min-width: 700px) and (max-width: 1099px) { .grid { max-width: calc(4 * var(--w) + 3 * var(--gap) + 2px); } }
-    @media (min-width: 1100px) {
-      :root { --gap: 28px; --w: clamp(120px, calc((100vw - 2 * 40px - 6 * 28px) / 7), 184px); }
-      .grid { flex-wrap: nowrap; max-width: none; }
-    }
-
     .item {
       width: var(--w); display: flex; flex-direction: column; align-items: center; text-align: center;
       color: inherit; text-decoration: none; border-radius: 28px;
@@ -119,7 +112,16 @@
       .item, .slogan, .credit { animation: none !important; transition: none; }
       .tile { transition: none; }
     }
-  </style>
+      /* tablet e computador: todos os projetos numa linha só (o tamanho se ajusta à largura da tela); celular: 3 por linha */
+    @media (min-width: 700px) {
+      :root { --gap: clamp(8px, 1.6vw, 28px); --w: min(184px, calc((100vw - 2 * 24px - 7 * var(--gap)) / 8)); }
+      .grid { flex-wrap: nowrap; max-width: none; }
+      .tile { border-radius: 22%; }
+      .name { font-size: clamp(11px, 1.15vw, 15px); }
+      .desc { font-size: clamp(9px, .95vw, 13px); }
+    }
+
+</style>
 </head>
 <body>
   <canvas id="bg" aria-hidden="true"></canvas>
@@ -157,31 +159,37 @@
         <span class="desc">Importe o cupom fiscal pelo QR Code e acompanhe o preço de cada produto ao longo do tempo.</span>
       </a>
 
-      <a class="item" style="--i:2" href="https://leitura-livro-de-mormon.pages.dev/" aria-label="Leitura do Livro de Mórmon: abrir o aplicativo">
+      <a class="item" style="--i:2" href="https://hub-ciclo.pages.dev/" aria-label="Meu Ciclo: abrir o aplicativo">
+        <span class="tile"><img src="/img/ciclo.webp" width="400" height="400" alt="" decoding="async"></span>
+        <span class="name">Meu Ciclo</span>
+        <span class="desc">Acompanhe seu ciclo e se conheça melhor. Seus dados ficam só no seu aparelho.</span>
+      </a>
+
+      <a class="item" style="--i:3" href="https://leitura-livro-de-mormon.pages.dev/" aria-label="Leitura do Livro de Mórmon: abrir o aplicativo">
         <span class="tile"><img src="/img/leitura.webp" width="400" height="400" alt="" decoding="async"></span>
         <span class="name">Leitura do Livro de Mórmon</span>
         <span class="desc">Acompanhe sua leitura, capítulo por capítulo. Grátis.</span>
       </a>
 
-      <a class="item" style="--i:3" href="https://pulso-pessoal.lovable.app" aria-label="Pulso: abrir o aplicativo">
+      <a class="item" style="--i:4" href="https://pulso-pessoal.lovable.app" aria-label="Pulso: abrir o aplicativo">
         <span class="tile"><img src="/img/pulso.webp" width="400" height="400" alt="" decoding="async"></span>
         <span class="name">Pulso</span>
         <span class="desc">Seu espaço privado para construir hábitos com calma e consistência.</span>
       </a>
 
-      <a class="item" style="--i:4" href="https://moto-painel.lsmlincolnmoraes.workers.dev/" aria-label="Moto Painel: abrir o aplicativo">
+      <a class="item" style="--i:5" href="https://moto-painel.lsmlincolnmoraes.workers.dev/" aria-label="Moto Painel: abrir o aplicativo">
         <span class="tile"><img src="/img/moto.webp" width="400" height="400" alt="" decoding="async"></span>
         <span class="name">Moto Painel</span>
         <span class="desc">Quilometragem diária, troca de óleo e manutenções da moto, num painel simples.</span>
       </a>
 
-      <div class="item" style="--i:5" role="group" aria-label="Equilíbrio Financeiro: em breve">
+      <div class="item" style="--i:6" role="group" aria-label="Equilíbrio Financeiro: em breve">
         <span class="tile"><img src="/img/equilibrio.webp" width="400" height="400" alt="" decoding="async"></span>
         <span class="name">Equilíbrio Financeiro</span>
         <span class="soon">Em breve</span>
       </div>
 
-      <div class="item" style="--i:6" role="group" aria-label="iSource: em breve">
+      <div class="item" style="--i:7" role="group" aria-label="iSource: em breve">
         <span class="tile"><img src="/img/isource.webp" width="400" height="400" alt="" decoding="async"></span>
         <span class="name">iSource</span>
         <span class="soon">Em breve</span>
