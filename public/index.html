@@ -124,6 +124,7 @@
     }
 
     .ver { margin-top: 8px; font-size: 11px; font-weight: 600; color: #a8782c; letter-spacing: .02em; }
+    [hidden] { display: none !important; }
     .links { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
     .pill { font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 999px; border: 1px solid #d2d2d7; color: var(--text); text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s; }
     .pill:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
@@ -217,11 +218,11 @@
   <footer>
     <p class="slogan">Soluções inteligentes, criadas para você.</p>
     <p class="credit">Desenvolvido por Lincoln Abagnale</p>
-    <p class="links">
+    <p class="links" hidden>
       <a class="pill" href="mailto:SEU-EMAIL-AQUI">Fale comigo</a>
       <a class="pill pill-gold" href="LINK-DE-APOIO-AQUI" target="_blank" rel="noopener">☕ Apoie meu trabalho</a>
     </p>
-    <p class="support-note">Os apps gratuitos são feitos com carinho. Se algum te ajudou, você pode contribuir com qualquer valor.</p>
+    <p class="support-note" hidden>Os apps gratuitos são feitos com carinho. Se algum te ajudou, você pode contribuir com qualquer valor.</p>
     <p class="copy">© 2026 Abagnale Developments. Todos os direitos reservados.</p>
   </footer>
 
