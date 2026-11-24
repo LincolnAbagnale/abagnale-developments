@@ -116,13 +116,21 @@
     }
       /* tablet e computador: todos os projetos numa linha só (o tamanho se ajusta à largura da tela); celular: 3 por linha */
     @media (min-width: 700px) {
-      :root { --gap: clamp(8px, 1.6vw, 28px); --w: min(184px, calc((100vw - 2 * 24px - 7 * var(--gap)) / 8)); }
+      :root { --gap: clamp(8px, 1.6vw, 28px); --w: min(184px, calc((100vw - 2 * 24px - 8 * var(--gap)) / 9)); }
       .grid { flex-wrap: nowrap; max-width: none; }
       .tile { border-radius: 22%; }
       .name { font-size: clamp(11px, 1.15vw, 15px); }
       .desc { font-size: clamp(9px, .95vw, 13px); }
     }
 
+    .ver { margin-top: 8px; font-size: 11px; font-weight: 600; color: #a8782c; letter-spacing: .02em; }
+    .links { margin-top: 22px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .pill { font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 999px; border: 1px solid #d2d2d7; color: var(--text); text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s; }
+    .pill:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .pill-gold { background: #b89e66; border-color: #b89e66; color: #fff; }
+    .pill:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+    .support-note { margin: 14px auto 0; max-width: 420px; padding: 0 20px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+    .copy { margin-top: 22px; font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -185,13 +193,20 @@
         <span class="desc">Quilometragem diária, troca de óleo e manutenções da moto, num painel simples.</span>
       </a>
 
-      <div class="item" style="--i:6" role="group" aria-label="Equilíbrio Financeiro: em breve">
+      <a class="item" style="--i:6" href="/downloads/MagicMouseBattery-Setup-v2.2.exe" download aria-label="Magic Mouse Battery: baixar para Windows">
+        <span class="tile"><img src="/img/magicmouse.webp" width="400" height="400" alt="" decoding="async"></span>
+        <span class="name">Magic Mouse Battery</span>
+        <span class="desc">Veja a bateria do Magic Mouse 1 no Windows. Grátis.</span>
+        <span class="ver">Versão 1, em aprimoramento</span>
+      </a>
+
+      <div class="item" style="--i:7" role="group" aria-label="Equilíbrio Financeiro: em breve">
         <span class="tile"><img src="/img/equilibrio.webp" width="400" height="400" alt="" decoding="async"></span>
         <span class="name">Equilíbrio Financeiro</span>
         <span class="soon">Em breve</span>
       </div>
 
-      <div class="item" style="--i:7" role="group" aria-label="iSource: em breve">
+      <div class="item" style="--i:8" role="group" aria-label="iSource: em breve">
         <span class="tile"><img src="/img/isource.webp" width="400" height="400" alt="" decoding="async"></span>
         <span class="name">iSource</span>
         <span class="soon">Em breve</span>
@@ -202,6 +217,12 @@
   <footer>
     <p class="slogan">Soluções inteligentes, criadas para você.</p>
     <p class="credit">Desenvolvido por Lincoln Abagnale</p>
+    <p class="links">
+      <a class="pill" href="mailto:SEU-EMAIL-AQUI">Fale comigo</a>
+      <a class="pill pill-gold" href="LINK-DE-APOIO-AQUI" target="_blank" rel="noopener">☕ Apoie meu trabalho</a>
+    </p>
+    <p class="support-note">Os apps gratuitos são feitos com carinho. Se algum te ajudou, você pode contribuir com qualquer valor.</p>
+    <p class="copy">© 2026 Abagnale Developments. Todos os direitos reservados.</p>
   </footer>
 
   <script>
